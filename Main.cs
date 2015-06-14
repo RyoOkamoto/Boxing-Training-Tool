@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Kinect;
 using System.Diagnostics;
+using System.Media;
 
 namespace BoxingSensor
 {
@@ -31,9 +32,19 @@ namespace BoxingSensor
 
         double speed;
         double len;
+        //構え時の距離
+        double startlen;
+        //ストレート時の距離
         double KeepLen = 0;
+        //構えから拳を放つ時の距離
+        double alldistance;
+        bool flag = false;
+
         Joint keepWristR;
         Joint keepShoulderR;
+        Joint startWristR;
+        Joint startShoulderR;
+
 
         Stopwatch stopwatch = new Stopwatch();
         Stopwatch Keeptime = new Stopwatch();
@@ -77,7 +88,7 @@ namespace BoxingSensor
         
 
        
-
+        //Kinectをスタートさせる
         private void StartKinect(KinectSensor kinect)
         {
             
@@ -96,18 +107,10 @@ namespace BoxingSensor
             }
             Mode.SelectedIndex = 1;
 
-
-            //Key_Click();
-           
-
-
-
-
-
-
-
         }
 
+
+        //Kinectをストップさせる
         private void StopKinect(KinectSensor kinect)
         {
             if (kinect != null)
@@ -158,7 +161,14 @@ namespace BoxingSensor
                             //ここにやりたい処理
                             
                             WRMeasure(kinect, depthFrame, skeltonFrame);
+                            //contentを管理してるクラスから呼び出す
+                            /*ContentManager.BGMmanager();
+                            ContentManager.SEManager();
+                            ContentManager.ImageManager();*/
+
                             stopwatch.Start();
+
+                            //画面遷移
                             switch (fase)
                             {
                                 case 0:
@@ -172,7 +182,7 @@ namespace BoxingSensor
                                     //画像を表示する
                                     FaseM.Source = bmpImage;
                                    
-                                    Scene.Content = stopwatch.Elapsed;
+                                    //Scene.Content = stopwatch.Elapsed;
                                     if (stopwatch.ElapsedTicks >= 18000000)
                                     {
                                         stopwatch.Stop();
@@ -188,7 +198,7 @@ namespace BoxingSensor
                                     bmpImage = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\BoxingExplain.png"));
                                     //画像を表示する
                                     FaseM.Source = bmpImage;
-                                    Scene.Content = stopwatch.Elapsed;
+                                    //Scene.Content = stopwatch.Elapsed;
                                     if (stopwatch.ElapsedTicks >= 18000000)
                                     {
                                         stopwatch.Stop();
@@ -209,6 +219,8 @@ namespace BoxingSensor
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
+                                        flag = true;
+                                        
                                         fase = 3;
 
                                     }
@@ -217,7 +229,13 @@ namespace BoxingSensor
                                 case 3:
 
 
-                                    
+                                    Scene.Content = Keeptime.Elapsed;
+                                    if (flag == true)
+                                    {
+                                        Keeptime = new Stopwatch();
+                                        timeGet = 0;
+                                        flag = false;
+                                    }
                                     
 
                                     //ファイルからBitmapImageにデータを読み込む
@@ -237,6 +255,7 @@ namespace BoxingSensor
                                         bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント2.png"));
                                         //画像を表示する
                                         Count.Source = bmpImage2;
+                                        distanceS(startWristR, startShoulderR);
 
                                     }
                                     if (stopwatch.ElapsedMilliseconds >= 3000)
@@ -245,6 +264,7 @@ namespace BoxingSensor
                                         bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント1.png"));
                                         //画像を表示する
                                         Count.Source = bmpImage2;
+                                        
 
                                     }
 
@@ -254,19 +274,20 @@ namespace BoxingSensor
                                         bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント0.png"));
                                         //画像を表示する
                                         Count.Source = bmpImage2;
-                                        Keeptime.Start();
+                                        
+                                       
                                         distance(keepWristR, keepShoulderR);
                                     }
                                     if (stopwatch.ElapsedMilliseconds >= 5000)
                                     {
                                         Count.Source = null;
                                     }
-                                    Scene.Content = stopwatch.Elapsed;
+                                   // Scene.Content = stopwatch.Elapsed;
                                     if (stopwatch.ElapsedTicks >= 18000000)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
-                                        Keeptime.Stop();
+                                        
 
                                         fase = 4;
 
@@ -278,19 +299,20 @@ namespace BoxingSensor
                                     bmpImage = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\Result.png"));
                                     //画像を表示する
                                     FaseM.Source = bmpImage;
-                                    dis.Content = "距離"+KeepLen+"cm";
+                                    alldistance = (KeepLen - startlen);
+                                    dis.Content = "距離"+ alldistance +"cm";
                                     Ti.Content = "時間" + timeGet + "ms";
-                                    speed = (KeepLen / timeGet)*10;
+                                    speed = (alldistance / timeGet)*10;
                                     Sp.Content = "速度" + speed + "m/s";
                                     
 
-                                    Scene.Content = stopwatch.Elapsed;
+                                    Scene.Content = Keeptime.Elapsed;
                                     if (Keyboard.IsKeyDown(Key.Enter))
                                     {
                                         Save1.PosSave(KeepLen, timeGet, speed);
                                         stopwatch.Stop();
                                         stopwatch.Reset();
-                                        Keeptime.Reset();
+                                        
                                         dis.Content = null;
                                         Ti.Content = null;
                                         Sp.Content = null;
@@ -324,6 +346,7 @@ namespace BoxingSensor
             }
         }
 
+        //右肩～右手首までの情報取得
         public void WRMeasure(KinectSensor kinect, DepthImageFrame depthFrame, SkeletonFrame skeletonFrame)
         {
             ColorImageStream colorStream = kinect.ColorStream;
@@ -373,7 +396,8 @@ namespace BoxingSensor
 
             keepWristR = WristR;
             keepShoulderR = ShoulderR;
-
+            startWristR = WristR;
+            startShoulderR = ShoulderR;
 
             short[] depthPixel = new short[depthFrame.PixelDataLength];
             depthFrame.CopyPixelDataTo(depthPixel);
@@ -388,6 +412,8 @@ namespace BoxingSensor
             //DrawMeasureL(kinect, colorStream, WristL, ShoulderL);
         }
 
+
+        //右肩～右手首までの情報可視化
         public void DrawMeasure(KinectSensor kinect, ColorImageStream colorStream, Joint WristR, Joint ShoulderR)
         {
            double lengthR = (Math.Sqrt((WristR.Position.X - ShoulderR.Position.X) * (WristR.Position.X - ShoulderR.Position.X) +
@@ -541,6 +567,7 @@ namespace BoxingSensor
 
         //}
 
+
         double ScaleTo(double value, double source, double dest)
         {
             return (value * dest) / source;
@@ -550,10 +577,12 @@ namespace BoxingSensor
         {
             StopKinect(KinectSensor.KinectSensors[0]);
         }
-
+        
+        //最大距離検出
         public void distance(Joint WristR, Joint ShoulderR)
         {
            
+            
 
             len = (Math.Sqrt((WristR.Position.X - ShoulderR.Position.X) * (WristR.Position.X - ShoulderR.Position.X) +
                                      (WristR.Position.Y - ShoulderR.Position.Y) * (WristR.Position.Y - ShoulderR.Position.Y) +
@@ -561,12 +590,35 @@ namespace BoxingSensor
             if (KeepLen < len)
             {
                 KeepLen = len;
+              
+                Keeptime.Start();
+                 
                 timeGet = Keeptime.ElapsedMilliseconds;
-
+                
             }
+
+            if (timeGet > 0 )
+            {
+                
+                Keeptime.Stop();
+                
+            }
+
 
         }
 
+        //初期構え距離検出
+        public void distanceS(Joint WristR, Joint ShoulderR)
+        {
+
+
+            startlen = (Math.Sqrt((WristR.Position.X - ShoulderR.Position.X) * (WristR.Position.X - ShoulderR.Position.X) +
+                                     (WristR.Position.Y - ShoulderR.Position.Y) * (WristR.Position.Y - ShoulderR.Position.Y) +
+                                     (WristR.Position.Z - ShoulderR.Position.Z) * (WristR.Position.Z - ShoulderR.Position.Z))) * 100;
+            
+
+        }
+        //スクリーンショット保存
         public void SsSave()
         {
 
@@ -596,6 +648,7 @@ namespace BoxingSensor
         }
        
 
+        //ボタンクリックでスクリーンショット保存
         private void 保存_Click(object sender, RoutedEventArgs e)
         {
 
@@ -628,6 +681,7 @@ namespace BoxingSensor
             
         }
 
+        //Aキーでスクリーン保存
         private void Key_Click()
         {
 
@@ -663,20 +717,12 @@ namespace BoxingSensor
             }
         }
 
-
-
-
-
-
         private void Mode_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
         }
 
-        private void ScreenShot(object sener, KeyEventArgs e)
-        {
-            
-        }
+       
 
         
 
@@ -685,5 +731,18 @@ namespace BoxingSensor
 
 
 
-}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
