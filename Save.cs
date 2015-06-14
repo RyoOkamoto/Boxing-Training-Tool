@@ -15,13 +15,13 @@ namespace BoxingSensor
 
 
         //CSVファイルにデータ情報書き込む
-        public static void DataSave(double num, double num2, double num3)
+        public static void DataSave(String a, double num, double num2, double num3, double num4, double num5, double num6,double num7, double num8)
         {
             StreamWriter sw;
             FileInfo fi;
             fi = new FileInfo(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\BoxingSensor\/data.csv");
             sw = fi.AppendText();
-            sw.WriteLine(num + "," + num2 + "," + num3);
+            sw.WriteLine(a + "," + num + "," + num2 + "," + num3 + "," + num4 + "," + num5 + "," + num6 + "," + num7 + "," + num8);
             sw.Flush();
             sw.Close();
         }
@@ -116,4 +116,3 @@ namespace BoxingSensor
        
     }
 }
-
