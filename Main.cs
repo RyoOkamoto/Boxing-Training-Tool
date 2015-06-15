@@ -18,6 +18,7 @@ using Microsoft.Kinect;
 using System.Diagnostics;
 using System.Media;
 
+
 namespace BoxingSensor
 {
     /// <summary>
@@ -25,6 +26,7 @@ namespace BoxingSensor
     /// </summary>
     public partial class MainWindow : Window
     {
+        
         readonly int Bgr32BytesPerPixel = PixelFormats.Bgr32.BitsPerPixel / 8;
         int i = 1;
         int fase = 0;
@@ -56,6 +58,8 @@ namespace BoxingSensor
         double alldistance3;
 
         bool flag = false;
+        bool flagM = false;
+        bool flagSE = false;
 
         Joint keepWristR;
         Joint keepShoulderR;
@@ -66,16 +70,17 @@ namespace BoxingSensor
         Joint startElbowR;
         Joint startElbowL;
 
-        double[]Px;
-        double[]Py;
-        double[]Pz;
-       /* double[] Px2;
-        double[] Py2;
-        double[] Pz2;*/
-
+        double[] Px = new double[6];
+        double[] Py = new double[6];
+        double[] Pz = new double[6];
+        double[] Px2 = new double[6];
+        double[] Py2 = new double[6];
+        double[] Pz2 = new double[6];
+        SoundPlayer[] BGM = new SoundPlayer[3];
+        SoundPlayer[] SE = new SoundPlayer[6];
 
         String Sex = null;
-        double height;
+        double height= 0;
 
         Stopwatch stopwatch = new Stopwatch();
         Stopwatch Keeptime = new Stopwatch();
@@ -107,6 +112,7 @@ namespace BoxingSensor
                 }
                 StartKinect(KinectSensor.KinectSensors[0]);
                 //sw.Show();
+                
                 
             }
             catch (Exception ex)
@@ -193,17 +199,20 @@ namespace BoxingSensor
                             
                             WRMeasure(kinect, depthFrame, skeltonFrame);
                             SceneChange();
-                            Key_Click();
+                            //Key_Click();
 
-                            //Save1.ReadFile(ref Px,Py,Pz);
-                            //Save1.ReadFile2(ref Px2,Py2,Pz2);
+                            Save1.ReadFile(ref Px,Py,Pz);
+                            Save1.ReadFile2(ref Px2,Py2,Pz2);
                             //contentを管理してるクラスから呼び出す
-                            /*ContentManager.BGMmanager();
-                            ContentManager.SEManager();
-                            ContentManager.ImageManager();*/
+                            ContentManager.BGMmanager(ref BGM);
+                            
+                            ContentManager.SEManager(ref SE);
+                            //ContentManager.ImageManager();
 
                             stopwatch.Start();
 
+                            
+                            
                             //画面遷移
                             switch (fase)
                             {
@@ -211,14 +220,20 @@ namespace BoxingSensor
                                 //タイトル
                                 case 0:
 
-
+                                    if (flagM == false)
+                                    {
+                                        BGM[0].PlayLooping();
+                                        
+                                        flagM = true;
+                                    }
+                                   
                                     //ファイルからBitmapImageにデータを読み込む
                                     bmpImage = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\BoxingBegin.png"));
                                     //画像を表示する
                                     FaseM.Source = bmpImage;
 
                                     //Scene.Content = stopwatch.Elapsed;
-                                    if (Keyboard.IsKeyDown(Key.Enter))
+                                    if (Keyboard.IsKeyDown(Key.Enter) && stopwatch.ElapsedMilliseconds>1500)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
@@ -249,7 +264,7 @@ namespace BoxingSensor
 
 
                                     Scene.Content = stopwatch.Elapsed;
-                                    if (Keyboard.IsKeyDown(Key.Enter))
+                                    if (Keyboard.IsKeyDown(Key.Enter) && stopwatch.ElapsedMilliseconds > 1500)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
@@ -269,7 +284,9 @@ namespace BoxingSensor
                                     FaseM.Source = bmpImage;
 
 
-
+                                    if(Keyboard.IsKeyDown(Key.B)){
+                                         SE[0].Play();
+                                    }
 
                                     if (Dot(startWristR, startElbowR, Px[0], Py[0], Pz[0], Px[1], Py[1], Pz[1]) >= level &&
                                         Dot(startElbowR, startShoulderR, Px[1], Py[1], Pz[1], Px[2], Py[2], Pz[2]) >= level &&
@@ -277,25 +294,27 @@ namespace BoxingSensor
                                         Dot(startElbowL, startShoulderL, Px[4], Py[4], Pz[4], Px[5], Py[5], Pz[5]) >= level)
                                     {
                                         //構え成功の音
-
-
-                                        SsSave();
-                                    }
-
-                                    if (Dot(startWristR, startElbowR, Px[0], Py[0], Pz[0], Px[1], Py[1], Pz[1]) >= level &&
-                                     Dot(startElbowR, startShoulderR, Px[1], Py[1], Pz[1], Px[2], Py[2], Pz[2]) >= level)
-                                    {
-                                        //攻撃の音
+                                        //SE[4].Play();
 
                                         //SsSave();
                                     }
 
-                                    if (stopwatch.ElapsedMilliseconds >= 6000)
+                                    if (Dot(startWristR, startElbowR, Px2[0], Py2[0], Pz2[0], Px2[1], Py2[1], Pz2[1]) >= level &&
+                                     Dot(startElbowR, startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level)
+                                    {
+                                        
+                                        //攻撃の音
+                                        SE[0].Play();
+
+                                        //SsSave();
+                                    }
+
+                                    if (Keyboard.IsKeyDown(Key.Enter) && stopwatch.ElapsedMilliseconds > 1500)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
                                         flag = true;
-
+                                        flagM = false;
                                         fase = 4;
 
                                     }
@@ -307,6 +326,15 @@ namespace BoxingSensor
 
                                 //かまえ
                                 case 4:
+                                    
+                                    if (flagM == false)
+                                    {
+                                        
+                                        BGM[0].Stop();
+                                        BGM[1].PlayLooping();
+                                        flagM = true;
+                                    }
+                                   
                                     //ファイルからBitmapImageにデータを読み込む
                                     bmpImage = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\Count.png"));
                                     //画像を表示する
@@ -630,6 +658,7 @@ namespace BoxingSensor
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
+                                        flagM = false;
                                         fase = 13;
 
                                     }
@@ -638,6 +667,13 @@ namespace BoxingSensor
 
                                 //測定結果
                                 case 13:
+                                    if (flagM == false)
+                                    {
+
+                                        BGM[1].Stop();
+                                        BGM[0].PlayLooping();
+                                        flagM = true;
+                                    }
                                     //ファイルからBitmapImageにデータを読み込む
                                     bmpImage = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\Result.png"));
                                     //画像を表示する
@@ -660,6 +696,10 @@ namespace BoxingSensor
                                     if (speed3 > speed && speed3 > speed2)
                                     {
                                         MostSp = 3;
+                                    }
+                                    if (speed3 == speed && speed3 == speed2)
+                                    {
+                                        MostSp = 0;
                                     }
 
                                     if (MostSp == 1)
@@ -684,8 +724,16 @@ namespace BoxingSensor
                                         Sp.Content = "伸び" + score2;
                                     }
 
+                                    if (MostSp == 0)
+                                    {
+                                        dis.Content = "距離" + ToRoundDown(alldistance3, 3) + "cm " + " 時間" + timeGet3 + "ms " + " 速度" + speed3 + "m/s";
+                                        Ti.Content = "ストローク" + score1;
+                                        Sp.Content = "伸び" + score2;
+                                    }
 
-                                    if (Keyboard.IsKeyDown(Key.Enter))
+
+
+                                    if (Keyboard.IsKeyDown(Key.Enter) && stopwatch.ElapsedMilliseconds > 1500)
                                     {
 
                                         stopwatch.Stop();
@@ -702,11 +750,11 @@ namespace BoxingSensor
                                 //身長と性別を入力
                                 case 14:
 
-                                    dis.Content = "性別をFかMで入力してください"+ Sex;
-                                    Ti.Content = "身長を入力してください" + height;
+                                    /*dis.Content = "性別をFかMで入力してください"+ Sex;
+                                    Ti.Content = "身長を入力してください" + height;*/
 
 
-                                    if (Keyboard.IsKeyDown(Key.Enter))
+                                    if (Keyboard.IsKeyDown(Key.Enter) && stopwatch.ElapsedMilliseconds > 1500)
                                     {
                                         if (MostSp == 1)
                                         {
@@ -720,6 +768,11 @@ namespace BoxingSensor
                                         {
                                             Save1.DataSave(Sex, height, startlen3, KeepLen3, alldistance3, timeGet3, speed3, score1, score2);
                                         }
+                                        if (MostSp == 0)
+                                        {
+                                            Save1.DataSave(Sex, height, startlen3, KeepLen3, alldistance3, timeGet3, speed3, score1, score2);
+                                        }
+
 
                                         score1 = 0;
                                         score2 = 0;
@@ -1203,12 +1256,12 @@ namespace BoxingSensor
             if (Keyboard.IsKeyDown(Key.A) == true)
             {
 
-                Save1.PosSave1(startWristR.Position.X,startWristR.Position.Y,startWristR.Position.Z);//0
-                Save1.PosSave1(startElbowR.Position.X, startElbowR.Position.Y, startElbowR.Position.Z);//1
-                Save1.PosSave1(startShoulderR.Position.X, startShoulderR.Position.Y, startShoulderR.Position.Z);//2
-                Save1.PosSave1(startWristL.Position.X, startWristL.Position.Y, startWristL.Position.Z);//3
-                Save1.PosSave1(startElbowL.Position.X, startElbowL.Position.Y, startElbowL.Position.Z);//4
-                Save1.PosSave1(startShoulderL.Position.X, startShoulderL.Position.Y, startShoulderL.Position.Z);//5
+               // Save1.PosSave2(startWristR.Position.X,startWristR.Position.Y,startWristR.Position.Z);//0
+               // Save1.PosSave2(startElbowR.Position.X, startElbowR.Position.Y, startElbowR.Position.Z);//1
+               // Save1.PosSave2(startShoulderR.Position.X, startShoulderR.Position.Y, startShoulderR.Position.Z);//2
+               // Save1.PosSave2(startWristL.Position.X, startWristL.Position.Y, startWristL.Position.Z);//3
+               // Save1.PosSave2(startElbowL.Position.X, startElbowL.Position.Y, startElbowL.Position.Z);//4
+               // Save1.PosSave2(startShoulderL.Position.X, startShoulderL.Position.Y, startShoulderL.Position.Z);//5
 
 
 
@@ -1301,5 +1354,18 @@ namespace BoxingSensor
 
 
 
-}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
