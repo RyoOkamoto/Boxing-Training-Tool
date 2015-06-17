@@ -34,8 +34,8 @@ namespace BoxingSensor
         int MostSp;
         
         //閾値
-        float level = 0.5f;
-        float level2 = 0.8f;
+        float level = 0.6f;
+        float level2 = 0.6f;
         //評価
         int score1 = 0;//良い構え
         int score2 = 0;//伸びが良い
@@ -68,7 +68,9 @@ namespace BoxingSensor
         bool Ma = true;
         bool Pflag = false;
         bool Pflag2 = false;
+        bool Pflag3 = false;
         bool Countflag = true;
+       
 
         Joint keepWristR;
         Joint keepShoulderR;
@@ -95,22 +97,19 @@ namespace BoxingSensor
         SoundPlayer[] BGM = new SoundPlayer[3];
         Uri[] SE = new Uri[6];
 
-        String Sex = null;
-        double height= 0;
+        String ID = null;
+        
 
         Stopwatch stopwatch = new Stopwatch();
         Stopwatch Keeptime = new Stopwatch();
         Stopwatch Panchtime = new Stopwatch();
+        Stopwatch IDtime = new Stopwatch();
+        Stopwatch Setime = new Stopwatch();
         double timeGet;
         double timeGet2;
         double timeGet3;
         //SubWindow sw = new SubWindow();
 
-        // 読み込んだ画像を保存するための変数
-        //BitmapImage bmpImage;
-        //BitmapImage bmpImage2;
-
-        
 
         BitmapImage[] Bimage = new BitmapImage[10];
         BitmapImage[] Simage = new BitmapImage[5];
@@ -232,15 +231,15 @@ namespace BoxingSensor
 
                             if (Fflag == true)
                             {
-                                Save1.ReadFile(ref Px,Py,Pz);
-                                Save1.ReadFile2(ref Px2, Py2, Pz2);
-                                Save1.ReadFile3(ref Px3,Py3,Pz3);
+                                Save1.ReadFile(ref Px,ref Py,ref Pz);
+                                Save1.ReadFile2(ref Px2, ref Py2, ref Pz2);
+                                Save1.ReadFile3(ref Px3,ref Py3,ref Pz3);
                                 //contentを管理してるクラスから呼び出す
                                 ContentManager.BGMmanager(ref BGM);
                                 
                                 ContentManager.SEManager(ref SE);
 
-                                ContentManager.ImageManager(ref Bimage, Simage);
+                                ContentManager.ImageManager(ref Bimage,ref Simage);
 
                                 Under.Source = Bimage[6];
                                 Under2.Source = Bimage[6];
@@ -354,79 +353,73 @@ namespace BoxingSensor
                                         Dot(startWristL, startElbowL, Px[3], Py[3], Pz[3], Px[4], Py[4], Pz[4]) >= level &&
                                         Dot(startElbowL, startShoulderL, Px[4], Py[4], Pz[4], Px[5], Py[5], Pz[5]) >= level)
                                     {
-                                       /* if (Pflag == true)
+
+                                        //構えの音
+                                        MusicB.Stop();
+                                        if (!Pflag)
                                         {
-                                            //構え成功の音
-                                            MusicB.Stop();
-                                            MusicC.Stop();
-                                            if (!Pflag)
-                                            {
-                                                MusicA.Play();
-                                                Pflag = false;
-                                            }
+                                            MusicA.Play();
+                                            Setime.Start();
+
+                                            Pflag = true;
                                         }
-                                        else
-                                        {
-                                            Pflag = false;
-                                            MusicA.Stop();
                                             
-                                        }*/
-                                       
                                         //SsSave();
                                     }
                                   
 
                                     if (Dot(startWristR, startElbowR, Px2[0], Py2[0], Pz2[0], Px2[1], Py2[1], Pz2[1]) >= level &&
-                                     Dot(startElbowR, startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level)
+                                     Dot(startElbowR,startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level)
                                     {
-                                        MusicB.Play();
+                                        
                                             //攻撃の音
-                                            MusicA.Stop();
-                                            MusicC.Stop();
-                                            if (!Pflag)
+                                        MusicA.Stop();
+                                            if (!Pflag3)
                                             {
                                                 MusicB.Play();
-                                                Pflag = true;
+                                                Setime.Start();
+
+                                                Pflag3 = true;
                                             }
                                             
-                                           /* if (Pflag == true)
-                                            {
-
-                                            }*/
-                                            
-                                      
-                                        
+                                          
+                                     
                                         //SsSave();
                                     }
-                                    else
+
+                                    if (Setime.ElapsedMilliseconds > 400)
                                     {
                                         Pflag = false;
+                                        Pflag2 = false;
+                                        Pflag3 = false;
+                                        MusicA.Stop();
                                         MusicB.Stop();
+                                        MusicC.Stop();
+                                        Setime.Stop();
+                                        Setime.Reset();
                                     }
+
+                                 
                                    
 
-                                    if (Dot(startWristL, startElbowL, Px3[3], Py3[3], Pz3[3], Px3[4], Py3[4], Pz3[4]) >= level &&
+                                  /*  if (Dot(startWristL, startElbowL, Px3[3], Py3[3], Pz3[3], Px3[4], Py3[4], Pz3[4]) >= level &&
                                     Dot(startElbowL, startShoulderL, Px3[4], Py3[4], Pz3[4], Px3[5], Py3[5], Pz3[5]) >= level)
                                     {
                                         
                                             //攻撃の音
-                                            MusicB.Stop();
-                                            MusicA.Stop();
-                                            if (!Pflag)
+                                        MusicA.Stop();
+                                            if (!Pflag2)
                                             {
                                                 MusicC.Play();
+                                                Setime.Start();
                                                 Pflag2 = true;
                                             }
                                        
                                         //SsSave();
                                     }
-                                    else
-                                    {
-                                        Pflag2 = false;
-                                        MusicC.Stop();
 
-                                    }
-                                   
+                                   */
+
 
 
 
@@ -473,7 +466,7 @@ namespace BoxingSensor
                                         Countflag = false;
                                     }
 
-                                    if (stopwatch.ElapsedMilliseconds >= 6000)
+                                    if (stopwatch.ElapsedMilliseconds >= 3000)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
@@ -559,30 +552,24 @@ namespace BoxingSensor
                                     if (Dot(startWristR, startElbowR, Px2[0], Py2[0], Pz2[0], Px2[1], Py2[1], Pz2[1]) >= level2 &&
                                     Dot(startElbowR, startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level2)
                                     {
-                                        MusicB.Play();
                                         //攻撃の音
-                                        MusicA.Stop();
-                                        MusicC.Stop();
-                                        if (!Pflag)
+                                       
+                                        if (!Pflag3)
                                         {
                                             MusicB.Play();
-                                            Pflag = true;
+                                            Setime.Start();
+
+                                            Pflag3 = true;
                                         }
-
-                                        /* if (Pflag == true)
-                                         {
-
-                                         }*/
-
-
-
+                                      
                                         //SsSave();
                                     }
                                     else
                                     {
-                                        Pflag = false;
+                                        Pflag3 = false;
                                         MusicB.Stop();
                                     }
+                                   
 
                                     if (stopwatch.ElapsedMilliseconds >= 500)
                                     {
@@ -626,7 +613,7 @@ namespace BoxingSensor
                                         Countflag = false;
                                     }
 
-                                    if (stopwatch.ElapsedMilliseconds >= 6000)
+                                    if (stopwatch.ElapsedMilliseconds >= 3000)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
@@ -710,22 +697,15 @@ namespace BoxingSensor
                                     if (Dot(startWristR, startElbowR, Px2[0], Py2[0], Pz2[0], Px2[1], Py2[1], Pz2[1]) >= level2 &&
                                     Dot(startElbowR, startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level2)
                                     {
-                                        MusicB.Play();
-                                        //攻撃の音
-                                        MusicA.Stop();
-                                        MusicC.Stop();
-                                        if (!Pflag)
+
+                                        if (!Pflag3)
                                         {
                                             MusicB.Play();
-                                            Pflag = true;
+                                            Setime.Start();
+
+                                            Pflag3 = true;
                                         }
-
-                                        /* if (Pflag == true)
-                                         {
-
-                                         }*/
-
-
+                                      
 
                                         //SsSave();
                                     }
@@ -778,7 +758,7 @@ namespace BoxingSensor
                                         Countflag = false;
                                     }
 
-                                    if (stopwatch.ElapsedMilliseconds >= 6000)
+                                    if (stopwatch.ElapsedMilliseconds >= 3000)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
@@ -877,28 +857,19 @@ namespace BoxingSensor
                                     if (Dot(startWristR, startElbowR, Px2[0], Py2[0], Pz2[0], Px2[1], Py2[1], Pz2[1]) >= level2 &&
                                     Dot(startElbowR, startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level2)
                                     {
-                                        MusicB.Play();
-                                        //攻撃の音
-                                        MusicA.Stop();
-                                        MusicC.Stop();
-                                        if (!Pflag)
+                                        if (!Pflag3)
                                         {
                                             MusicB.Play();
-                                            Pflag = true;
+                                            Setime.Start();
+
+                                            Pflag3 = true;
                                         }
-
-                                        /* if (Pflag == true)
-                                         {
-
-                                         }*/
-
-
 
                                         //SsSave();
                                     }
                                     else
                                     {
-                                        Pflag = false;
+                                        Pflag3 = false;
                                         MusicB.Stop();
                                     }
 
@@ -933,11 +904,11 @@ namespace BoxingSensor
                                     //画像を表示する
                                     FaseM.Source = Bimage[5];
                                     alldistance = (KeepLen - startlen);
-                                    speed = (alldistance / timeGet) * 10;
+                                    speed = (alldistance / timeGet) * 10 *3.6;
                                     alldistance2 = (KeepLen2 - startlen2);
-                                    speed2 = (alldistance2 / timeGet2) * 10;
+                                    speed2 = (alldistance2 / timeGet2) * 10 *3.6;
                                     alldistance3 = (KeepLen3 - startlen3);
-                                    speed3 = (alldistance3 / timeGet3) * 10;
+                                    speed3 = (alldistance3 / timeGet3) * 10 *3.6;
 
                                     if (speed > speed2 && speed > speed3)
                                     {
@@ -958,30 +929,30 @@ namespace BoxingSensor
 
                                     if (MostSp == 1)
                                     {
-                                        dis.Content = "距離" + ToRoundDown(alldistance, 2) + "cm " + " 時間" + timeGet + "ms " + " 速度" +ToRoundDown(speed, 2) + "m/s";
-                                        Ti.Content = "ストローク " + score1 + " 高いほど良いフォームだよ！";
-                                        Sp.Content = "伸び " + score2 + " 高いほど伸びのあるパンチだよ！";
+                                        dis.Content = "距離" + ToRoundDown(alldistance, 2) + "cm " + " 時間" + timeGet + "ms " + " 速度" +ToRoundDown(speed, 2) + "km/h";
+                                        Ti.Content = "ストローク " + score1 + "/6点 高いほど良いフォームだよ！";
+                                        Sp.Content = "伸び " + score2 + "点 高いほど伸びのあるパンチだよ！";
                                     }
 
                                     if (MostSp == 2)
                                     {
-                                        dis.Content = "距離" + ToRoundDown(alldistance2, 3) + "cm " + " 時間" + timeGet2 + "ms " + " 速度" +ToRoundDown(speed2,2) + "m/s";
+                                        dis.Content = "距離" + ToRoundDown(alldistance2, 3) + "cm " + " 時間" + timeGet2 + "ms " + " 速度" +ToRoundDown(speed2,2) + "km/h";
 
-                                        Ti.Content = "ストローク " + score1 + " 高いほど良いフォームだよ！";
-                                        Sp.Content = "伸び " + score2 + " 高いほど伸びのあるパンチだよ！";
+                                        Ti.Content = "フォーム " + score1 + "/6点 高いほど良いフォームだよ！";
+                                        Sp.Content = "伸び " + score2 + "点 高いほど伸びのあるパンチだよ！";
                                     }
 
                                     if (MostSp == 3)
                                     {
-                                        dis.Content = "距離" + ToRoundDown(alldistance3, 3) + "cm " + " 時間" + timeGet3 + "ms " + " 速度" +ToRoundDown(speed3,2) + "m/s";
-                                        Ti.Content = "ストローク " + score1 + " 高いほど良いフォームだよ！";
-                                        Sp.Content = "伸び " + score2 + " 高いほど伸びのあるパンチだよ！";
+                                        dis.Content = "距離" + ToRoundDown(alldistance3, 3) + "cm " + " 時間" + timeGet3 + "ms " + " 速度" +ToRoundDown(speed3,2) + "km/h";
+                                        Ti.Content = "フォーム " + score1 + "/6点 高いほど良いフォームだよ！";
+                                        Sp.Content = "伸び " + score2 + "点 高いほど伸びのあるパンチだよ！";
                                     }
 
                                     if (MostSp == 0)
                                     {
-                                        dis.Content = "距離" + ToRoundDown(alldistance3, 3) + "cm " + " 時間失敗" + timeGet3 + "ms " + " 速度" +ToRoundDown(speed3,2) + "m/s";
-                                        Ti.Content = "ストローク " + score1;
+                                        dis.Content = "距離" + ToRoundDown(alldistance3, 3) + "cm " + " 時間" + timeGet3 + "ms " + " 速度" +ToRoundDown(speed3,2) + "km/h";
+                                        Ti.Content = "フォーム " + score1;
                                         Sp.Content = "伸び " + score2;
                                     }
                                     if (fase != 13)
@@ -1006,39 +977,42 @@ namespace BoxingSensor
                                     break;
 #endregion
 
-#region 身長性別を入力する
-                                //身長と性別を入力
+#region IDを入力する
+                                //IDを入力
                                 case 14:
 
-                                    /*dis.Content = "性別をFかMで入力してください"+ Sex;
-                                    Ti.Content = "身長を入力してください" + height;*/
+                                    IDtime.Start();
+                                    if(IDtime.ElapsedMilliseconds > 100){
+                                        IDcount();
+                                        IDtime.Stop();
+                                        IDtime.Reset();
+                                    }
 
+                                    dis.Content = "Thank you for playing";
+                                    Ti.Content = "何度も練習して上手くなろう！！";
+                                    Sp.Content = "IDを入力してください " + ID;
+                                    
 
-                                    if (Keyboard.IsKeyDown(Key.Enter) && stopwatch.ElapsedMilliseconds > 1500)
+                                    if ( Keyboard.IsKeyDown(Key.Enter) && stopwatch.ElapsedMilliseconds > 1500)
                                     {
-                                        if (MostSp == 1)
-                                        {
-                                            Save1.DataSave(Sex, height, startlen, KeepLen, alldistance, timeGet, speed, score1, score2);
-                                        }
-                                        if (MostSp == 2)
-                                        {
-                                            Save1.DataSave(Sex, height, startlen2, KeepLen2, alldistance2, timeGet2, speed2, score1, score2);
-                                        }
-                                        if (MostSp == 3)
-                                        {
-                                            Save1.DataSave(Sex, height, startlen3, KeepLen3, alldistance3, timeGet3, speed3, score1, score2);
-                                        }
-                                        if (MostSp == 0)
-                                        {
-                                            Save1.DataSave(Sex, height, startlen3, KeepLen3, alldistance3, timeGet3, speed3, score1, score2);
-                                        }
+                                       
+                                            Save1.DataSave(ID, startlen, KeepLen, alldistance, timeGet, speed, score1, score2);
+                                        
+                                      
+                                            Save1.DataSave(ID, startlen2, KeepLen2, alldistance2, timeGet2, speed2, score1, score2);
+                                        
+                                      
+                                            Save1.DataSave(ID, startlen3, KeepLen3, alldistance3, timeGet3, speed3, score1, score2);
+                                        
+                                      
 
 
                                         score1 = 0;
                                         score2 = 0;
                                         stopwatch.Stop();
                                         stopwatch.Reset();
-
+                                        IDtime.Stop();
+                                        IDtime.Reset();
                                         dis.Content = null;
                                         Ti.Content = null;
                                         Sp.Content = null;
@@ -1619,10 +1593,71 @@ namespace BoxingSensor
 
 
         }
-        
+        #region IDcount
+        private void IDcount()
+        {
+            if (Keyboard.IsKeyDown(Key.D1))
+            {
+                ID += "1";
+            }
+
+            if (Keyboard.IsKeyDown(Key.D2))
+            {
+                ID += "2";
+            }
+
+            if (Keyboard.IsKeyDown(Key.D3))
+            {
+                ID += "3";
+            }
+
+            if (Keyboard.IsKeyDown(Key.D4))
+            {
+                ID += "4";
+            }
+
+            if (Keyboard.IsKeyDown(Key.D5))
+            {
+                ID += "5";
+            }
+
+            if (Keyboard.IsKeyDown(Key.D6))
+            {
+                ID += "6";
+            }
+
+            if (Keyboard.IsKeyDown(Key.D7))
+            {
+                ID += "7";
+            }
+
+            if (Keyboard.IsKeyDown(Key.D8))
+            {
+                ID += "8";
+            }
+
+            if (Keyboard.IsKeyDown(Key.D9))
+            {
+                ID += "9";
+            }
+
+            if (Keyboard.IsKeyDown(Key.D0))
+            {
+                ID += "0";
+            }
+
+            if (Keyboard.IsKeyDown(Key.Back))
+            {
+                ID += " ";
+            }
+
+        #endregion
+
+
+
+        }
 
 
     }
 
 }
-
