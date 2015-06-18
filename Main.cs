@@ -1,5 +1,6 @@
 #Main.cs
 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,6 +61,7 @@ namespace BoxingSensor
         double alldistance3;
 
         bool flag = false;
+        bool flag2 = false;
         bool flagM = false;
         bool flagSE = true;
         bool Keyflage = false;
@@ -70,6 +72,7 @@ namespace BoxingSensor
         bool Pflag2 = false;
         bool Pflag3 = false;
         bool Countflag = true;
+        bool Pchange = true;
        
 
         Joint keepWristR;
@@ -105,6 +108,7 @@ namespace BoxingSensor
         Stopwatch Panchtime = new Stopwatch();
         Stopwatch IDtime = new Stopwatch();
         Stopwatch Setime = new Stopwatch();
+        Stopwatch SetPtime = new Stopwatch();
         double timeGet;
         double timeGet2;
         double timeGet3;
@@ -117,6 +121,8 @@ namespace BoxingSensor
         // ファイルを開くダイアログ
         Microsoft.Win32.OpenFileDialog ofDialog =
             new Microsoft.Win32.OpenFileDialog();
+        double lenR;
+        double lenL;
        
        
 
@@ -325,7 +331,8 @@ namespace BoxingSensor
                                   
                                     //画像を表示する
                                     FaseM.Source = Bimage[3];
-
+                                    distanceR(keepWristR, keepShoulderR);
+                                    distanceL(startWristL,startShoulderL);
                                    /* if (Panchtime.ElapsedMilliseconds > 300)
                                     {
                                         Pflag = true;
@@ -353,7 +360,7 @@ namespace BoxingSensor
                                         Dot(startWristL, startElbowL, Px[3], Py[3], Pz[3], Px[4], Py[4], Pz[4]) >= level &&
                                         Dot(startElbowL, startShoulderL, Px[4], Py[4], Pz[4], Px[5], Py[5], Pz[5]) >= level)
                                     {
-
+                                        Pchange = false;
                                         //構えの音
                                         MusicB.Stop();
                                         if (!Pflag)
@@ -366,18 +373,18 @@ namespace BoxingSensor
                                             
                                         //SsSave();
                                     }
-                                  
 
-                                    if (Dot(startWristR, startElbowR, Px2[0], Py2[0], Pz2[0], Px2[1], Py2[1], Pz2[1]) >= level &&
-                                     Dot(startElbowR,startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level)
-                                    {
+
+                                    if (lenR > 35 && Pchange == false && startWristR.Position.Y > startElbowR.Position.Y && startElbowR.Position.Y < startShoulderR.Position.Y * 1.2)
                                         
+                                    {
+                                       // MusicB.Play();
                                             //攻撃の音
                                         MusicA.Stop();
                                             if (!Pflag3)
                                             {
                                                 MusicB.Play();
-                                                Setime.Start();
+                                                SetPtime.Start();
 
                                                 Pflag3 = true;
                                             }
@@ -387,47 +394,52 @@ namespace BoxingSensor
                                         //SsSave();
                                     }
 
+                                    if (lenL > 35 && Pchange == false && startWristL.Position.Y > startElbowL.Position.Y  && startElbowL.Position.Y < startShoulderL.Position.Y * 1.2)
+                                    {
+
+                                        //攻撃の音
+                                        MusicA.Stop();
+                                        if (!Pflag2)
+                                        {
+                                            MusicC.Play();
+                                            SetPtime.Start();
+                                            Pflag2 = true;
+                                        }
+
+                                        //SsSave();
+                                    }
+
                                     if (Setime.ElapsedMilliseconds > 400)
                                     {
                                         Pflag = false;
-                                        Pflag2 = false;
-                                        Pflag3 = false;
+                                       
+                                        
                                         MusicA.Stop();
-                                        MusicB.Stop();
-                                        MusicC.Stop();
+                                       
                                         Setime.Stop();
                                         Setime.Reset();
                                     }
 
-                                 
+                                 if(SetPtime.ElapsedMilliseconds > 800){
+                                     Pflag2 = false;
+                                     Pflag3 = false;
+                                     
+                                     MusicB.Stop();
+                                     MusicC.Stop();
+                                     SetPtime.Stop();
+                                     SetPtime.Reset();
+                                 }
                                    
 
-                                  /*  if (Dot(startWristL, startElbowL, Px3[3], Py3[3], Pz3[3], Px3[4], Py3[4], Pz3[4]) >= level &&
-                                    Dot(startElbowL, startShoulderL, Px3[4], Py3[4], Pz3[4], Px3[5], Py3[5], Pz3[5]) >= level)
-                                    {
-                                        
-                                            //攻撃の音
-                                        MusicA.Stop();
-                                            if (!Pflag2)
-                                            {
-                                                MusicC.Play();
-                                                Setime.Start();
-                                                Pflag2 = true;
-                                            }
-                                       
-                                        //SsSave();
-                                    }
-
-                                   */
-
-
+        
 
 
                                     if (Keyboard.IsKeyDown(Key.Enter) && stopwatch.ElapsedMilliseconds > 1500)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
-                                        flag = true;
+                                        
+                                        
                                         flagM = false;
                                         fase = 4;
 
@@ -466,12 +478,14 @@ namespace BoxingSensor
                                         Countflag = false;
                                     }
 
-                                    if (stopwatch.ElapsedMilliseconds >= 3000)
+                                    if (stopwatch.ElapsedMilliseconds >= 2000)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
                                         flagM = false;
-                                        Countflag = true; 
+                                        Countflag = true;
+                                        flag = true;
+                                        flag2 = true;
                                         fase = 5;
 
                                     }
@@ -505,7 +519,7 @@ namespace BoxingSensor
                                        // bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント2.png"));
                                         //画像を表示する
                                         Count.Source = Simage[2];
-                                        distanceS(startWristR, startShoulderR);
+                                       
 
                                     }
                                     if (stopwatch.ElapsedMilliseconds >= 3000)
@@ -522,9 +536,12 @@ namespace BoxingSensor
                                     if (stopwatch.ElapsedMilliseconds >= 3500)
                                     {
                                         stopwatch.Stop();
+                                        distanceS(startWristR, startShoulderR);
                                         stopwatch.Reset();
                                         Ma = true;
                                         MusicA.Stop();
+                                        MusicB.Stop();
+                                        Pflag3 = false;
                                         fase = 6;
 
                                     }
@@ -533,6 +550,7 @@ namespace BoxingSensor
 
 #region 1回目パンチ
                                 case 6:
+                                    //distanceR(keepWristR, keepShoulderR);
                                     //Scene.Content = Keeptime.Elapsed;
                                     if (flag == true)
                                     {
@@ -540,48 +558,46 @@ namespace BoxingSensor
                                         Keeptime = new Stopwatch();
                                         timeGet = 0;
                                         flag = false;
+                                        Countflag = true;
                                     }
-                                    if (Dot(startWristR, startElbowR, Px[0], Py[0], Pz[0], Px[1], Py[1], Pz[1]) >= level &&
-                                      Dot(startElbowR, startShoulderR, Px[1], Py[1], Pz[1], Px[2], Py[2], Pz[2]) >= level && Countflag == true)
+                                    if (stopwatch.ElapsedMilliseconds >= 500)
                                     {
-                                        //ストロークカウント
-                                        score1 += 1;
-                                        Countflag = false;
+                                        
+                                        //ファイルからBitmapImageにデータを読み込む
+                                        //bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント0.png"));
+                                        //画像を表示する
+                                        if (flag2 == true)
+                                        {
+                                            Count.Source = null;
+                                            FaseM.Source = Bimage[7];
+                                            flag2 = false;
+                                        }
+
+                                        distance(keepWristR, keepShoulderR);
                                     }
-                                   
-                                    if (Dot(startWristR, startElbowR, Px2[0], Py2[0], Pz2[0], Px2[1], Py2[1], Pz2[1]) >= level2 &&
-                                    Dot(startElbowR, startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level2)
+
+                                    if (len > 35  && startWristR.Position.Y > startElbowR.Position.Y && startElbowR.Position.Y < startShoulderR.Position.Y * 1.2 )
                                     {
+
+                                        if (Countflag == true)
+                                        {
+                                            //ストロークカウント
+                                            score1 += 1;
+                                            Countflag = false;
+                                        }
+                                        // MusicB.Play();
                                         //攻撃の音
                                        
                                         if (!Pflag3)
                                         {
                                             MusicB.Play();
-                                            Setime.Start();
-
                                             Pflag3 = true;
                                         }
-                                      
                                         //SsSave();
                                     }
-                                    else
-                                    {
-                                        Pflag3 = false;
-                                        MusicB.Stop();
-                                    }
+                               
+
                                    
-
-                                    if (stopwatch.ElapsedMilliseconds >= 500)
-                                    {
-                                        //ファイルからBitmapImageにデータを読み込む
-                                        //bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント0.png"));
-                                        //画像を表示する
-                                        Count.Source = null;
-                                        FaseM.Source = Bimage[7];
-
-
-                                        distance(keepWristR, keepShoulderR);
-                                    }
 
                                    
                                     if (stopwatch.ElapsedMilliseconds >= 6000)
@@ -590,6 +606,7 @@ namespace BoxingSensor
                                         Countflag = true;
                                         stopwatch.Stop();
                                         stopwatch.Reset();
+                                        MusicB.Stop();
                                         fase = 7;
 
                                     }
@@ -613,11 +630,12 @@ namespace BoxingSensor
                                         Countflag = false;
                                     }
 
-                                    if (stopwatch.ElapsedMilliseconds >= 3000)
+                                    if (stopwatch.ElapsedMilliseconds >= 2000)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
                                         Countflag = true;
+                                        Pflag3 = false;
                                         fase = 8;
 
                                     }
@@ -647,7 +665,7 @@ namespace BoxingSensor
                                         //bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント2.png"));
                                         //画像を表示する
                                         Count.Source = Simage[2];
-                                        distanceS(startWristR, startShoulderR);
+                                        
 
                                     }
                                     if (stopwatch.ElapsedMilliseconds >= 3000)
@@ -664,9 +682,12 @@ namespace BoxingSensor
                                     if (stopwatch.ElapsedMilliseconds >= 3500)
                                     {
                                         stopwatch.Stop();
+                                        distanceS2(startWristR, startShoulderR);
                                         stopwatch.Reset();
                                         MusicA.Stop();
                                         Ma = true;
+                                        flag = true;
+                                        flag2 = true;
                                         fase = 9;
 
                                     }
@@ -677,6 +698,7 @@ namespace BoxingSensor
 #region 2回目パンチ
                                 //パンチ
                                 case 9:
+                                    //distanceR(keepWristR, keepShoulderR);
                                     //Scene.Content = Keeptime.Elapsed;
                                     if (flag == true)
                                     {
@@ -685,47 +707,45 @@ namespace BoxingSensor
                                         timeGet2 = 0;
                                         flag = false;
                                     }
-
-                                    if (Dot(startWristR, startElbowR, Px[0], Py[0], Pz[0], Px[1], Py[1], Pz[1]) >= level &&
-                                      Dot(startElbowR, startShoulderR, Px[1], Py[1], Pz[1], Px[2], Py[2], Pz[2]) >= level&& Countflag == true)
-                                    {
-                                        //ストロークカウント
-                                        score1 += 1;
-                                        Countflag = false;
-                                    }
-
-                                    if (Dot(startWristR, startElbowR, Px2[0], Py2[0], Pz2[0], Px2[1], Py2[1], Pz2[1]) >= level2 &&
-                                    Dot(startElbowR, startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level2)
-                                    {
-
-                                        if (!Pflag3)
-                                        {
-                                            MusicB.Play();
-                                            Setime.Start();
-
-                                            Pflag3 = true;
-                                        }
-                                      
-
-                                        //SsSave();
-                                    }
-                                    else
-                                    {
-                                        Pflag = false;
-                                        MusicB.Stop();
-                                    }
-
                                     if (stopwatch.ElapsedMilliseconds >= 500)
                                     {
                                         //ファイルからBitmapImageにデータを読み込む
                                         //bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント0.png"));
                                         //画像を表示する
-                                        Count.Source = null;
-                                        FaseM.Source = Bimage[7];
-
+                                       
+                                        if (flag2 == true)
+                                        {
+                                            Count.Source = null;
+                                            FaseM.Source = Bimage[7];
+                                            flag2 = false;
+                                        }
 
                                         distance2(keepWristR, keepShoulderR);
                                     }
+                                  
+                                    if (len2 > 35  && startWristR.Position.Y > startElbowR.Position.Y && startElbowR.Position.Y < startShoulderR.Position.Y * 1.2)
+                                    {
+
+                                        if (Countflag == true)
+                                        {
+                                            //ストロークカウント
+                                            score1 += 1;
+                                            Countflag = false;
+                                        }
+                                        // MusicB.Play();
+                                        //攻撃の音
+                                        
+                                        if (!Pflag3)
+                                        {
+                                            MusicB.Play();
+                                            Pflag3 = true;
+                                        }
+
+                                        //SsSave();
+                                    }
+                                   
+
+                                  
 
                                   
 
@@ -758,11 +778,13 @@ namespace BoxingSensor
                                         Countflag = false;
                                     }
 
-                                    if (stopwatch.ElapsedMilliseconds >= 3000)
+
+                                    if (stopwatch.ElapsedMilliseconds >= 2000)
                                     {
                                         stopwatch.Stop();
                                         stopwatch.Reset();
                                         Countflag = true;
+                                        Pflag3 = false;
                                         fase = 11;
 
                                     }
@@ -792,7 +814,7 @@ namespace BoxingSensor
                                         //bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント2.png"));
                                         //画像を表示する
                                         Count.Source = Simage[2];
-                                        distanceS(startWristR, startShoulderR);
+                                        
 
                                     }
                                     if (stopwatch.ElapsedMilliseconds >= 3000)
@@ -808,11 +830,14 @@ namespace BoxingSensor
 
                                     if (stopwatch.ElapsedMilliseconds >= 3500)
                                     {
+
                                         stopwatch.Stop();
+                                        distanceS3(startWristR, startShoulderR);
                                         stopwatch.Reset();
                                         MusicA.Stop();
                                         Ma = true;
-
+                                        flag = false;
+                                        flag2 = true;
                                         fase = 12;
 
                                     }
@@ -823,7 +848,7 @@ namespace BoxingSensor
 #region 3回目パンチ
                                 //パンチ
                                 case 12:
-
+                                    //distanceR(keepWristR, keepShoulderR);
                                     //Scene.Content = Keeptime.Elapsed;
                                     if (flag == true)
                                     {
@@ -841,36 +866,37 @@ namespace BoxingSensor
                                         //ファイルからBitmapImageにデータを読み込む
                                         //bmpImage2 = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\カウント0.png"));
                                         //画像を表示する
-                                        Count.Source = null;
-                                        FaseM.Source = Bimage[7];
 
+
+                                        if (flag2 == true)
+                                        {
+                                            Count.Source = null;
+                                            FaseM.Source = Bimage[7];
+                                            flag2 = false;
+                                        }
 
                                         distance3(keepWristR, keepShoulderR);
                                     }
-                                     if (Dot(startWristR, startElbowR, Px[0], Py[0], Pz[0], Px[1], Py[1], Pz[1]) >= level &&
-                                      Dot(startElbowR, startShoulderR, Px[1], Py[1], Pz[1], Px[2], Py[2], Pz[2]) >= level && Countflag == true)
+                                 
+                                    if (len3 > 35 && startWristR.Position.Y > startElbowR.Position.Y && startElbowR.Position.Y < startShoulderR.Position.Y * 1.2)
                                     {
-                                        //ストロークカウント
-                                        score1 += 1;
-                                        Countflag = false;
-                                    }
-                                    if (Dot(startWristR, startElbowR, Px2[0], Py2[0], Pz2[0], Px2[1], Py2[1], Pz2[1]) >= level2 &&
-                                    Dot(startElbowR, startShoulderR, Px2[1], Py2[1], Pz2[1], Px2[2], Py2[2], Pz2[2]) >= level2)
-                                    {
+
+                                        if (Countflag == true)
+                                        {
+                                            //ストロークカウント
+                                            score1 += 1;
+                                            Countflag = false;
+                                        }
+                                        // MusicB.Play();
+                                        //攻撃の音
+                                        
                                         if (!Pflag3)
                                         {
                                             MusicB.Play();
-                                            Setime.Start();
-
                                             Pflag3 = true;
                                         }
 
                                         //SsSave();
-                                    }
-                                    else
-                                    {
-                                        Pflag3 = false;
-                                        MusicB.Stop();
                                     }
 
                                     if (stopwatch.ElapsedMilliseconds >= 6000)
@@ -893,7 +919,8 @@ namespace BoxingSensor
                                 case 13:
                                     if (flagM == false)
                                     {
-
+                                        flag = true;
+                                        flag2 = true;
                                         
                                         BGM[0].PlayLooping();
                                         flagM = true;
@@ -902,6 +929,7 @@ namespace BoxingSensor
                                     //ファイルからBitmapImageにデータを読み込む
                                     //bmpImage = new BitmapImage(new Uri(@"C:\Users\labohp\Documents\Visual Studio 2013\Projects\BoxingSensor\Picture\Result.png"));
                                     //画像を表示する
+                                   
                                     FaseM.Source = Bimage[5];
                                     alldistance = (KeepLen - startlen);
                                     speed = (alldistance / timeGet) * 10 *3.6;
@@ -909,6 +937,21 @@ namespace BoxingSensor
                                     speed2 = (alldistance2 / timeGet2) * 10 *3.6;
                                     alldistance3 = (KeepLen3 - startlen3);
                                     speed3 = (alldistance3 / timeGet3) * 10 *3.6;
+                                    if (timeGet == 0)
+                                    {
+                                        speed = 0;
+
+                                    }
+                                    if (timeGet2 == 0)
+                                    {
+                                        speed2 = 0;
+
+                                    }
+                                    if (timeGet3 == 0)
+                                    {
+                                        speed3 = 0;
+
+                                    }
 
                                     if (speed > speed2 && speed > speed3)
                                     {
@@ -951,10 +994,11 @@ namespace BoxingSensor
 
                                     if (MostSp == 0)
                                     {
-                                        dis.Content = "距離" + ToRoundDown(alldistance3, 3) + "cm " + " 時間" + timeGet3 + "ms " + " 速度" +ToRoundDown(speed3,2) + "km/h";
+                                        dis.Content = "距離" + ToRoundDown(alldistance3, 3) + "cm " + " ミス" + timeGet3 + "ms " + " ミス" +ToRoundDown(speed3,2) + "km/h";
                                         Ti.Content = "フォーム " + score1;
                                         Sp.Content = "伸び " + score2;
                                     }
+
                                     if (fase != 13)
                                     {
                                         dis.Content = null;
@@ -1005,7 +1049,6 @@ namespace BoxingSensor
                                             Save1.DataSave(ID, startlen3, KeepLen3, alldistance3, timeGet3, speed3, score1, score2);
                                         
                                       
-
 
                                         score1 = 0;
                                         score2 = 0;
@@ -1274,6 +1317,33 @@ namespace BoxingSensor
             StopKinect(KinectSensor.KinectSensors[0]);
         }
         
+
+         //距離検出R
+        public void distanceR(Joint WristR, Joint ShoulderR)
+        {
+
+
+
+            lenR = (Math.Sqrt((WristR.Position.X - ShoulderR.Position.X) * (WristR.Position.X - ShoulderR.Position.X) +
+                                     (WristR.Position.Y - ShoulderR.Position.Y) * (WristR.Position.Y - ShoulderR.Position.Y) +
+                                     (WristR.Position.Z - ShoulderR.Position.Z) * (WristR.Position.Z - ShoulderR.Position.Z))) * 100;
+
+        }
+
+        //距離検出L
+        public void distanceL(Joint WristL, Joint ShoulderL)
+        {
+
+
+
+            lenL = (Math.Sqrt((WristL.Position.X - ShoulderL.Position.X) * (WristL.Position.X - ShoulderL.Position.X) +
+                                     (WristL.Position.Y - ShoulderL.Position.Y) * (WristL.Position.Y - ShoulderL.Position.Y) +
+                                     (WristL.Position.Z - ShoulderL.Position.Z) * (WristL.Position.Z - ShoulderL.Position.Z))) * 100;
+
+        }
+
+
+
         //最大距離検出
         public void distance(Joint WristR, Joint ShoulderR)
         {
